@@ -16,7 +16,6 @@ module Priority.Numbers where
 import Data.Bits
 import GHC.Num
 import GHC.Float
-import GHC.IO
 import GHC.Base
 import GHC.Real
 import Data.Bool
