@@ -42,7 +42,7 @@ author:             Oleksandr Zhabenko
 maintainer:         oleksandr.zhabenko@yahoo.com
 
 -- A copyright notice.
--- copyright:
+copyright:          (c) Oleksandr S. Zhabenko 2022
 category:           Math, Data
 build-type:         Simple
 
@@ -54,7 +54,7 @@ extra-doc-files:    CHANGELOG.md
 
 library
     -- Modules exported by the library.
-    exposed-modules:  Priority.Numbers
+    exposed-modules:  Priority.Numbers, Data.MarkerSeqs, Data.FList
 
     -- Modules included in this library but not exported.
     -- other-modules:
