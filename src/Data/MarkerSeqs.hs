@@ -1,4 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude, MagicHash #-}
 
 -- |
 -- Module      :  Data.MarkerSeqs
@@ -14,11 +14,11 @@ module Data.MarkerSeqs where
 import GHC.Num
 import GHC.Real
 import GHC.Base
-import Data.List
+import Data.List hiding (foldr)
 import GHC.Show
 import Data.Bits
 import Numeric (showIntAtBase,showInt)
-import Data.Foldable hiding (length)
+import Data.Foldable (Foldable)
 import GHC.Int
 --import qualified Data.Heap as H
 
@@ -85,3 +85,10 @@ getIndices2 groupLength ks xs = filter (not. null) . map (filter (not . null). m
 
 idList :: Eq a => [Int8] -> [ASort3 a] -> [Int8]
 idList orDs ys = map (\(As3 k _ _) -> k) . filter (\(As3 _ n _) -> n `elem` orDs) $ ys
+
+toNum :: [Int8] -> Integer
+toNum xs = foldl' setBit 0 . map (\(I8# k) -> I# k) $ xs
+
+toNum2 :: [Int8] -> Integer
+toNum2 xs = (sum . map (shiftL 1 . (\(I8# k) -> I# k)) $ xs)::Integer
+
