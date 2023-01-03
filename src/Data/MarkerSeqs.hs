@@ -21,6 +21,7 @@ import Numeric (showIntAtBase,showInt)
 import Data.Foldable (Foldable)
 import GHC.Int
 import Data.Maybe (mapMaybe, catMaybes)
+import Data.BasicF
 
 showBin :: Int -> [Char]
 showBin x = '0':'b':showIntAtBase 2 (head . flip showInt "") x ""
@@ -73,18 +74,6 @@ splitF n ys =
         where f' n ks@(_:_) = let (ts,ws) = splitAt n ks in ts : f' n ws
               f' _ _ = []
 
-{- getIndices2 
-  :: Ord a => Int8 
-  -> [Int8] 
-  -> [a] 
-  -> [[[Int8]]]
-getIndices2 groupLength ks xs = map (filter (not . null). map (idList ws) . g [groupLength-1,groupLength-2..] . sort . 
-   zipWith S2 [groupLength-1,groupLength-2..]) . splitF (fromIntegral groupLength) $ xs
-     where !ws =  sortBy (\x y -> compare y x) . filter (>= 0) $ ks
-           g (q:qs) xs@(x:ys) = let (js,rs) = span (== x) ys in map (\(S2 k y) -> As3 k q y) (x:js) : g qs rs
-           g _ _ = []
--}
-
 getHashes2 
   :: Ord a => Int8 
   -> [Int8] 
@@ -107,6 +96,15 @@ count1Hashes
 count1Hashes groupLength ks = sum . map createNewHash . countHashesPrioritized . getHashes2 groupLength ks 
 {-# INLINE count1Hashes #-}
 
+countHashesG 
+  :: Ord a => ([Integer] -> Int -> Int)
+  -> Int8
+  -> [Int8]
+  -> [a]
+  -> Integer
+countHashesG f groupLength ks  = sum . map (createHashG f) . countHashesPrioritized . getHashes2 groupLength ks
+{-# INLINE countHashesG #-}
+
 createNewHash :: [Integer] -> Integer
 createNewHash (x1:x2:x3:x4:x5:x6:x7:_) = sum [shiftL x1 120, shiftL x2 100, shiftL x3 80, shiftL x4 60, shiftL x5 40, shiftL x6 20, x7]
 createNewHash (x1:x2:x3:x4:x5:x6:_) = sum [shiftL x1 120, shiftL x2 100, shiftL x3 80, shiftL x4 60, shiftL x5 40, shiftL x6 20]
@@ -116,6 +114,25 @@ createNewHash (x1:x2:x3:_) = sum [shiftL x1 120, shiftL x2 100, shiftL x3 80]
 createNewHash (x1:x2:_) = sum [shiftL x1 120, shiftL x2 100]
 createNewHash (x1:_) = shiftL x1 120
 createNewHash _ = 0
+
+createHashG :: ([Integer] -> Int -> Int) -> [Integer] -> Integer
+createHashG f xs = sum . zipWith (\x n -> shift x (n*20 + f xs n)) xs $ [6,5..]
+
+createNHash :: [Integer] -> Integer
+createNHash = createHashG (\_ _ -> 0)
+{-# INLINE createNHash #-}
+
+createHashEndingL :: [Integer] -> Integer
+createHashEndingL = createHashG hashEndingLF
+{-# INLINE createHashEndingL #-}
+
+createHashBeginningL :: [Integer] -> Integer
+createHashBeginningL = createHashG hashBeginningLF
+{-# INLINE createHashBeginningL #-}
+
+createHashBalancingL :: [Integer] -> Integer
+createHashBalancingL = sum
+{-# INLINE createHashBalancingL #-}
 
 idList :: Eq a => [Int8] -> [ASort3 a] -> [Int8]
 idList orDs ys = map (\(As3 k _ _) -> k) . filter (\(As3 _ n _) -> n `elem` orDs) $ ys

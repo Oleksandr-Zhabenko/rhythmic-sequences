@@ -42,7 +42,7 @@ author:             Oleksandr Zhabenko
 maintainer:         oleksandr.zhabenko@yahoo.com
 
 -- A copyright notice.
-copyright:          (c) Oleksandr S. Zhabenko 2022
+copyright:          (c) Oleksandr S. Zhabenko 2022-2023
 category:           Math, Data
 build-type:         Simple
 
@@ -54,13 +54,13 @@ extra-doc-files:    CHANGELOG.md
 
 library
     -- Modules exported by the library.
-    exposed-modules:  Priority.Numbers, Data.MarkerSeqs, Data.FList
+    exposed-modules:  Priority.Numbers, Data.MarkerSeqs, Data.FList, Data.BasicF
 
     -- Modules included in this library but not exported.
     -- other-modules:
 
     -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
+    other-extensions: Strict, StrictData, MagicHash, NoImplicitPrelude, BangPatterns
 
     -- Other library packages from which modules are imported.
     build-depends:    base >=4.13 && <5
