@@ -19,15 +19,16 @@ import Data.Bool
 import GHC.List
 import GHC.Show
 
-hashEndingLF :: [Integer] -> Int -> Int
-hashEndingLF _ n = 6 - 21*n
-{-# INLINE hashEndingLF #-}
+hashEndingLF2 :: [Integer] -> Maybe Int -> Int -> Int
+hashEndingLF2 _ _ n = 6 - 21*n
+{-# INLINE hashEndingLF2 #-}
 
-hashBeginningLF :: [Integer] -> Int -> Int
-hashBeginningLF _ n = n
-{-# INLINE hashBeginningLF #-}
+hashBeginningLF2 :: [Integer] -> Maybe Int -> Int -> Int
+hashBeginningLF2 _ _ n = n
+{-# INLINE hashBeginningLF2 #-}
 
-hashBalancingLF :: [Integer] -> Int -> Int
-hashBalancingLF _ n = -20*n
-{-# INLINE hashBalancingLF #-}
+hashBalancingLF2 :: [Integer] -> Maybe Int -> Int -> Int
+hashBalancingLF2 _ _ n = -20*n
+{-# INLINE hashBalancingLF2 #-}
+
 

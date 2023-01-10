@@ -114,12 +114,13 @@ count1Hashes groupLength ks = sum . map createNewHash . countHashesPrioritized .
 -- of the list data. The greater result corresponds to greater detected periodicity in the 
 -- relative values.
 countHashesG 
-  :: Ord a => ([Integer] -> Int -> Int)
-  -> Int8
+  :: Ord a => ([Integer] -> Maybe Int -> Int -> Int) -- ^ Function that specifies how the arguments influence the result. Somewhat the kernel of the 'countHashesG' computation. The second argument if it is the precomputed 'Maybe' length of the fourth argument of the 'countHashesG' to which it is passed.
+  -> Maybe Int -- ^ The parameter that if 'Just' @n@ (n>0) then is expected to be the precomputed 'Just' length of the fourth argument. If set to 'Nothing' that should mean no dependency on the position of the element  in  the fourth argument in the list exists (looks the simler case than the former one).
+  -> Int8 -- ^ Is expected to be from the list [6, 5,.., 0]. Is the number of explicitly expected markers to be computed.
   -> [Int8]
   -> [a]
   -> Integer
-countHashesG f groupLength ks  = sum . map (createHashG f) . countHashesPrioritized . getHashes2 groupLength ks
+countHashesG f len groupLength ks  = sum . map (createHashG len f) . countHashesPrioritized . getHashes2 groupLength ks
 {-# INLINE countHashesG #-}
 
 -- | Provided for testing.
@@ -134,32 +135,32 @@ createNewHash (x1:_) = shiftL x1 120
 createNewHash _ = 0
 
 -- | General implementation of the second hashing of the data for the algorithm.
-createHashG :: ([Integer] -> Int -> Int) -> [Integer] -> Integer
-createHashG f xs = sum . zipWith (\x n -> shift x (n*20 + f xs n)) xs $ [6,5..]
+createHashG :: Maybe Int -> ([Integer] -> Maybe Int -> Int -> Int) -> [Integer] -> Integer
+createHashG len f xs = sum . zipWith (\x n -> shift x (n*20 + f xs len n)) xs $ [6,5..]
 
 -- | A variant of the 'createHashG' that actually must be equal to the 'createNewHash' for the lists
 -- with less than 8 elements. For greater values is not correctly defined, so do not use it for 
 -- the lists with 8 or more elements in them.
 createNHash :: [Integer] -> Integer
-createNHash = createHashG (\_ _ -> 0)
+createNHash = createHashG Nothing (\_ _ _ -> 0)
 {-# INLINE createNHash #-}
 
 -- | Similar to 'createNHash' limitations. Gives greater values for the last elements of the list
 -- than the former one.
 createHashEndingL :: [Integer] -> Integer
-createHashEndingL = createHashG hashEndingLF
+createHashEndingL = createHashG Nothing hashEndingLF2
 {-# INLINE createHashEndingL #-}
 
 -- | Similar to 'createNHash' limitations. Gives greater values for  the first elements of the list
 -- than the former one.
 createHashBeginningL :: [Integer] -> Integer
-createHashBeginningL = createHashG hashBeginningLF
+createHashBeginningL = createHashG Nothing hashBeginningLF2
 {-# INLINE createHashBeginningL #-}
 
 -- | Similar to 'createNHash' limitations. Treats all the list elements as equally important
 -- to influence the result.
 createHashBalancingL :: [Integer] -> Integer
-createHashBalancingL = createHashG hashBalancingLF
+createHashBalancingL = createHashG Nothing hashBalancingLF2
 {-# INLINE createHashBalancingL #-}
 
 -- | Function to filter the elements by the second parameter of the 'ASort3' data 
