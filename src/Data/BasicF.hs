@@ -1,4 +1,5 @@
-{-# LANGUAGE BinaryLiterals, NoImplicitPrelude, Strict #-}
+{-# LANGUAGE NoImplicitPrelude, Strict #-}
+{-# OPTIONS_HADDOCK show-extensions #-}
 
 -- |
 -- Module      :  Data.BasicF
@@ -7,17 +8,16 @@
 -- Stability   :  Experimental
 -- Maintainer  :  oleksandr.zhabenko@yahoo.com
 -- 
--- 
+-- Functions for Data.MarkerSeqs module that additionally \"catches\" some hashing logics 
+-- so that they can influence in the predictable way the peculiarities of the results 
+-- for PhLADiPreLiO.
+
 module Data.BasicF where
 
-import Data.Bits
 import GHC.Num
-import GHC.Float
 import GHC.Base
 import GHC.Real
-import Data.Bool
 import GHC.List
-import GHC.Show
 
 hashEndingLF2 :: [Integer] -> Int -> Int -> Int
 hashEndingLF2 _ k n = 6 - 21*n + k

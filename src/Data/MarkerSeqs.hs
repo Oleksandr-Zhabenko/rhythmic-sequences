@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude, MagicHash, BangPatterns #-}
+{-# OPTIONS_HADDOCK show-extensions #-}
 
 -- |
 -- Module      :  Data.MarkerSeqs
@@ -88,12 +89,13 @@ splitF n ys =
 -- used internally in the 'countHashesG'.
 -- Provided here mostly for testing purposes.
 getHashes2 
-  :: Ord a => Int8 
-  -> [Int8] -- ^ The list must be sorted in the descending order, the elements must be greater than -1 and there must not be repetitions in the list.  
+  :: Ord a => Int8 -- ^ The period of the groups (the length of the lists into which the general sequence is splitted at first).
+  -> [Int8] -- ^ The list must be sorted in the descending order, the elements must be greater than -1 and less than the first argument here and there must not be repetitions in the list.  
   -> [a] 
   -> [[Integer]]
-getHashes2 groupLength ks xs = map (map toNum . filter (not . null) . map (idList ks) .  g [groupLength-1,groupLength-2..] . sort . 
-   zipWith S2 [groupLength-1,groupLength-2..]) . splitF (fromIntegral groupLength) $ xs
+getHashes2 selmarkNum ks xs = map (map toNum . filter (not . null) . map (idList ks) .  -- before this mapping the smallest element can potentially have 'orD' equal to 0 or greater than 0. The greatest element has 'orD' equal to @selmarkNum - 1@ (@= periodLength - 1@).
+ g [selmarkNum-1,selmarkNum-2..] . sort . 
+   zipWith S2 [selmarkNum-1,selmarkNum-2..]) . splitF (fromIntegral selmarkNum) $ xs
      where g (q:qs) xs@(x:ys) = let (js,rs) = span (== x) ys in map (\(S2 k y) -> As3 k q y) (x:js) : g qs rs
            g _ _ = []
 
@@ -116,13 +118,20 @@ count1Hashes groupLength ks = sum . map createNewHash . countHashesPrioritized .
 -- relative values.
 countHashesG 
   :: Ord a => ([Integer] -> Int -> Int -> Int) -- ^ Function that specifies how the arguments influence the result. Somewhat the kernel of the 'countHashesG' computation. The second argument is taken from the second argument being 'zipWith' the 'createHashG' function.
-  -> [Int] -- ^ The list  of parameters that if 'Just' @n@ (n>0) then is expected to be the 'Just' position (analogue of an index) of the group in the general  sequence. If set to [] that should mean no dependency on the position of the group in the general sequence exists (looks the simpler case than the former one). Otherwise, the count of positions starts from the 1 and goes further @(2, 3,.., k)@.
-  -> Int8 -- ^ Is expected to be from the list @[6, 5,.., 0]@. Is the number of explicitly expected markers to be computed.
+  -> [Int] -- ^ The list  of parameters that if 'Just' @n@ (n>0) then is expected to be the 'Just' position (analogue of an index) of the group in the general  sequence. 
+-- The count of positions starts from the 1 and goes further @(2, 3,.., k)@. These \"pseudopositions\" then are used as argument for kernel weight function @f@ inside the 'createHashG'. For the first group 
+-- that represents the similarity between the first and the next (the second) group of values is
+-- used a head of the list here, for the second group — the next element etc until all the list here
+-- is used. Please, do not use here large numbers because it will drastically increease the
+-- computation resources usage (space and time).
+  -> Int8 -- ^ Is expected to be from the list @[7, 6,.., 1]@. Is the number of explicitly expected markers to be computed so that this result influences the general one.
+  -> int8 -- ^ The period of the length of the initial list.
   -> [Int8] -- ^ List of ordinary positions of the maximum-minimum levels for values of the list in the group. The length of the unique elements together in the list is expected to be
   -- in the list [1..7]. 
   -> [a]
-  -> Integer
-countHashesG f positions groupLength ks  = sum . zipWith (\pos vals -> createHashG positions f vals) positions . countHashesPrioritized . getHashes2 groupLength ws
+  -> [Integer]
+countHashesG f positions markNum groupLength ks  = -- sum . 
+  zipWith (\pos vals -> createHashG positions f vals) positions . countHashesPrioritized . getHashes2 groupLength ws
    where !ws = sortBy (\x y -> compare y x) . filter (>= 0) $ ks
 {-# INLINE countHashesG #-}
 
@@ -139,12 +148,13 @@ createNewHash _ = 0
 
 -- | General implementation of the second hashing of the data for the algorithm.
 createHashG :: [Int] -> ([Integer] -> Int -> Int -> Int) -> [Integer] -> Integer
-createHashG positions f xs = sum . zipWith3 (\x pos n -> shift x (n*20 + f xs pos n)) xs positions $ [6,5..]
+createHashG positions f xs = sum . zipWith3 (\x pos n -> shift x (n*20 + f xs pos n)) xs positions $ [6,5..0]
 
 -- | A variant of the 'createHashG' that actually must be equal to the 'createNewHash' for the
 -- second argument lists 
 -- with less than 8 elements. For greater values is not correctly defined, so do not use it for 
--- the lists with 8 or more elements in them.
+-- the lists with 8 or more elements in them. Actually should be equal to 'createNewHash' for the
+-- second argument.
 createNHash :: [Int] -> [Integer] -> Integer
 createNHash positions = createHashG positions (\_ _ _ -> 0)
 {-# INLINE createNHash #-}
