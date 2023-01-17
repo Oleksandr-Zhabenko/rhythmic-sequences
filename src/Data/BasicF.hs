@@ -22,7 +22,7 @@ import GHC.List
 import GHC.Int
 
 hashPosLF2 :: Int8 -> [Integer] -> Integer
-hashPosLF2 k@(I8# i) ns = flip shift (I# i) . sum $ ns 
+hashPosLF2 (I8# i) ns = shift (sum ns) (I# i)
 {-# INLINE hashPosLF2 #-}
 
 hashBalancingLF2 :: Int8 -> [Integer] -> Integer

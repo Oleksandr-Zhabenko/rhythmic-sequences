@@ -140,8 +140,8 @@ one can be considered  the basic option for the computation).
 -}
 hashList :: HashCorrections -> [Int8]
 hashList (H _ 1) = [10,9..]
-hashList (H _ 2) = [1..21]
-hashList (H xs _) = xs
+hashList (H _ 2) = [1..21] ++ cycle [0]
+hashList (H xs _) = xs ++ cycle [0]
 {-# INLINE hashList #-}
 
 -- | General implementation of  the hash-based algorithm to evaluate the level of rhythmicity 
@@ -154,7 +154,7 @@ countHashesG
   -> [a]
   -> [Integer]
 countHashesG hc groupLength ks  = -- sum . 
-  zipWith (\pos vals -> createHashG pos f vals) positions . countHashesPrioritized . getHashes2 groupLength ws
+  zipWith (createHashG f) positions . countHashesPrioritized . getHashes2 groupLength ws
    where f = hashCorrections2F hc
          positions = hashList hc
          !ws = sortBy (\x y -> compare y x) . filter (>= 0) $ ks
@@ -172,8 +172,9 @@ createNewHash (x1:_) = shiftL x1 120
 createNewHash _ = 0
 
 -- | General implementation of the second hashing of the data for the algorithm.
-createHashG :: Int8 -> (Int8 -> [Integer] -> Integer) -> [Integer] -> Integer
-createHashG pos f xs = f pos . zipWith (\x n -> shift x (n*20)) xs $ [6,5..0]
+createHashG :: (Int8 -> [Integer] -> Integer) -> Int8 -> [Integer] -> Integer
+createHashG f pos = f pos . zipWith (\n x -> shift x (n*20)) [6,5..0]
+{-# INLINE createHashG #-}
 
 -- | A variant of the 'createHashG' that actually must be equal to the 'createNewHash' for the
 -- second argument lists 
