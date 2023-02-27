@@ -1,4 +1,4 @@
-# Revision history for priority-ord-numbers
+# Revision history for rhythmic-sequences
 
 ## 0.1.0.0 -- 2023-01-17
 
